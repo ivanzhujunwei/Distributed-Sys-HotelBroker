@@ -6,12 +6,38 @@
 
 package entities;
 
+import java.io.Serializable;
+
 /**
  * 
  * @author Ivan Zhu <ivanzhujunwei@gmail.com>
  */
-public class Room {
+public class Room implements Serializable{
     
     private int roomId;
+    
+    private String des;
+
+    public int getRoomId()
+    {
+        return roomId;
+    }
+
+    public void setRoomId(int roomId)
+    {
+        this.roomId = roomId;
+    }
+
+    public String getDes()
+    {
+        return des;
+    }
+
+    public void setDes(String des)
+    {
+        this.des = des;
+    }
+    
+    
     
 }

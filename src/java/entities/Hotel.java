@@ -19,6 +19,15 @@ public class Hotel {
     private String address;
     
     private double rate;
+    
+    public Hotel(int hotelId, String hotelName, String cityName, String address, double rate){
+        this.hotelId = hotelId;
+        this.hotelName = hotelName;
+        this.cityName = cityName;
+        this.address = address;
+        this.rate = rate;
+    }
+    
 
     public int getHotelId()
     {

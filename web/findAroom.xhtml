@@ -3,44 +3,134 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-      xmlns:f="http://xmlns.jcp.org/jsf/core">
+      xmlns:f="http://xmlns.jcp.org/jsf/core" 
+      xmlns:a="http://xmlns.jcp.org/jsf/passthrough">
 
     <body>
-
-        <ui:composition template="./template.xhtml">
-
+        <ui:composition template="template.xhtml">
             <ui:define name="title">
-                Search a room
+                Hotel broker
             </ui:define>
-
             <ui:define name="box">
-                <h4>Welcome to hotel booking broker!</h4>
-
-                <h:form>
-                    <div class="form-group col-lg-12 h5">
-                        <label class="col-lg-2 control-label">Choose a city</label>
-                        <div class="col-lg-3 selectWithLabel">
-                            <h:selectOneMenu id="selecCity" class="form-control" style="height:35px" 
-                                             value="#{hotelBookBean.cityName}"
-                                             onchange = "submit()" 
-                                             valueChangeListener = "#{hotelBookBean.localeChanged}">
-                                <f:selectItems value="#{hotelBookBean.getAllCities()}" />
-                            </h:selectOneMenu>
+                <h:form id="header">
+                    <div class="col-md-12" style="padding-bottom: 20px;padding-top:20px;">
+                        <div class="col-md-10">
+                            <h4>Welcome to hotel booking broker!</h4>
+                        </div>
+                        <div class="col-md-2">
+                            <h:commandLink action="configConnection" class="btn btn-warning" ><i class="fa fa-"></i>Configure</h:commandLink>
                         </div>
                     </div>
-                    <h:outputText id = "country" value = "#{hotelBookBean.cityName}" />
-                    <div class="form-group col-lg-12 h5">
-                        <label class="col-lg-2 control-label">Choose a hotel</label>
-                        <div class="col-lg-3 selectWithLabel">
-                        </div>
-                    </div>
-                    <h:inputText size="2" maxlength="2" value="#{UserNumberBean.userNumber}" />
-                    <h:commandButton id="submit" value="submit" action="response" />
+                    <br/>
                 </h:form>
+                <h:form>
+                    <div class="col-lg-6">
+                        <div class="panel panel-default ">
+                            <div class="panel-heading">Find you holiday
+                                <h:message style="color: red" for="checkin" />&nbsp;
+                                <h:message style="color: red" for="checkout" />
+                                <label class="inputError">#{hotelBookBean.error}</label>
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-5 control-label">Choose a city</label>
+                                    <div class="col-lg-7 selectWithLabel">
+                                        <h:selectOneMenu id="selectCity" class="form-control" style="height:35px"
+                                                         value="#{hotelBookBean.cityName}">
+                                            <f:selectItem  itemLabel = " - Select a city "/>
+                                            <f:selectItems value="#{hotelBookBean.getAllCities()}" />
+                                            <f:ajax execute="selectCity" render="selectHotel"/>
+                                        </h:selectOneMenu>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-5 control-label">Choose a hotel</label>
+                                    <div class="col-lg-7 selectWithLabel">
+                                        <h:selectOneMenu id="selectHotel" class="form-control" style="height:35px" value="#{hotelBookBean.hotelName}" >
+                                            <f:selectItem  itemLabel = " - Select a hotel "/>
+                                            <f:selectItems value="#{hotelBookBean.hotelsInCity}" />
+                                            <f:ajax   execute="selectHotel"  render="rateId" />
+                                        </h:selectOneMenu>
+                                    </div>
+                                </div>
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-5 control-label">Room rate</label>
+                                    <div class="col-lg-7 selectWithLabel"  >
+                                        <h:outputText id="rateId" value="#{hotelBookBean.rate}" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-5 control-label">Check in</label>
+                                    <div class="col-lg-7 selectWithLabel" >
+                                        <h:inputText  class="form-control" value="#{hotelBookBean.checkIn}" a:placeholder="yyyy-mm-dd"  id="checkin"
+                                                      required="true" requiredMessage="Check in date cannot be empty"  
+                                                      validatorMessage="Date format should be yyyy-mm-dd" >
+                                            <f:validateRegex pattern="\d{4}[-]\d{2}[-]\d{2}"></f:validateRegex>
+                                        </h:inputText>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-5 control-label">Check out</label>
+                                    <div class="col-lg-7 selectWithLabel" >
+                                        <h:inputText  class="form-control" value="#{hotelBookBean.checkOut}" a:placeholder="yyyy-mm-dd" id="checkout"
+                                                      required="true" requiredMessage="Check out date cannot be empty" 
+                                                      validatorMessage="Date format should be yyyy-mm-dd" >
+                                            <f:validateRegex pattern="\d{4}[-]\d{2}[-]\d{2}"></f:validateRegex>
+                                        </h:inputText>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-lg-5 ">
+                                    <h:commandLink class="btn btn-success searchRoom"  value="Search" action="#{hotelBookBean.getAvailableRooms()}" >
+                                        &nbsp;&nbsp;<i class="fa fa-search"></i>
+                                        <!--<f:ajax   execute="@form"  render="roomsForBooking" />-->
+                                    </h:commandLink>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </h:form>
+                <div class="col-lg-5">
+                    <div class="panel panel-default" style="height: 353px">
+                        <div class="panel-heading">Available rooms<br/>
+                        </div>
+                        <div class="panel-body">
+                            <h:form id="MyForm">
+                                <table class="table table-striped">
+                                    <tr>
+                                        <th width="30%"> Room number </th>
+                                        <th width="30%"> Description </th>
+                                        <th width="50%">  </th>
+                                    </tr>
+                                    <!-- For each service in service list... --> 
+                                    <div></div>
+                                    <ui:repeat id="roomsForBooking" value="#{hotelBookBean.roomsFound}" var="room" varStatus="status"> 
+                                        <tr> 
+                                            <td style="vertical-align: middle">  
+                                                <h:outputText value="#{room.roomId}" id="room_id" />  
+                                            </td>
+                                            <td style="vertical-align: middle"> <h:outputText value="#{room.des}"  /></td>
+                                            <td style="vertical-align: middle"> 
+                                                <h:commandLink action="#{hotelBookBean.tryBooking(room)}"><i class="fa fa-info-circle"></i>
+                                                </h:commandLink>
+                                            </td>
+                                        </tr> 
+                                    </ui:repeat> 
+                                </table>
+                            </h:form>
+                        </div>
+                    </div>
+                </div>
             </ui:define>
-
         </ui:composition>
-
     </body>
+    <script>
+        function dateCompare() {
+            alert(3);
+        }
+    </script>
 </html>
 

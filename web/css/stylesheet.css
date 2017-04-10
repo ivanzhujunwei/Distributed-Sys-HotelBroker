@@ -1,4 +1,16 @@
 .selectWithLabel{
-    margin-top:-12px;
-    margin-left: -80px;
+    margin-top:-2px;
+}
+
+.searchRoom{
+    width: 400px;
+    margin-left: 16px;
+}
+
+.inputWithLabel{
+    margin-top:0px;
+}
+
+.inputError{
+    color:red
 }

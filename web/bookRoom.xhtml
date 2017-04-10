@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets" 
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+    <body>
+        <ui:composition template="template.xhtml">
+            <ui:define name="title">
+                Hotel broker
+            </ui:define>
+            <ui:define name="box">
+                <h4>Welcome to hotel booking broker!</h4><br/>
+                <h:form>
+                    <div class="col-lg-10">
+                        <div class="panel panel-default ">
+                            <div class="panel-heading">Booking info</div>
+                            <div class="panel-body">
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-2 control-label">City</label>
+                                    <div class="col-lg-4 ">
+                                        <label class="control-label">#{hotelBookBean.cityName}</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-2 control-label">Hotel</label>
+                                    <div class="col-lg-4 ">
+                                        <label class="control-label">#{hotelBookBean.hotelName}</label>
+                                    </div>
+                                </div>
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-2 control-label">Room rate</label>
+                                    <div class="col-lg-4" >
+                                        <label class="control-label">#{hotelBookBean.rate}</label>
+                                    </div>
+                                </div>
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-2 control-label">Total amount</label>
+                                    <div class="col-lg-4" >
+                                        <label class="control-label">#{hotelBookBean.totalAmount}</label>
+                                    </div>
+                                </div>
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-2 control-label">Check in</label>
+                                    <div class="col-lg-4" >
+                                        <label class="control-label">#{hotelBookBean.checkIn}</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-2 control-label">Check out</label>
+                                    <div class="col-lg-4">
+                                        <label class="control-label">#{hotelBookBean.checkOut}</label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-10" >
+                        <div class="panel panel-default " >
+                            <div class="panel-heading">Fill in customer's information</div>
+                            <div class="panel-body">
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-2 control-label">Guest name</label>
+                                    <div class="col-lg-4 inputWithLabel" >
+                                        <h:inputText  class="form-control" value="#{hotelBookBean.guestName}"
+                                                      id="guestname"
+                                                      required="true" requiredMessage="Guest name cannot be empty"/>
+                                    </div>
+                                    <label class="col-lg-3 control-label"><h:message class="inputError" for="guestname"></h:message></label>
+                                </div>
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-2 control-label">Contact phone</label>
+                                    <div class="col-lg-4 inputWithLabel" >
+                                        <h:inputText  class="form-control" value="#{hotelBookBean.phone}"
+                                                      id="phone"
+                                                      required="true" requiredMessage="Phone cannot be empty"
+                                                      validatorMessage = "6 number for phone">
+                                            <f:validateRegex pattern="\d{6}"></f:validateRegex>
+                                        </h:inputText>
+                                    </div>
+                                    <label class="col-lg-3 control-label"><h:message class="inputError" for="phone"></h:message></label>
+                                </div>
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-2 control-label">Contact email</label>
+                                    <div class="col-lg-4 inputWithLabel" >
+                                        <h:inputText  class="form-control" value="#{hotelBookBean.email}"
+                                                      id="email"
+                                                      required="true" requiredMessage="Email cannot be empty" 
+                                                      validatorMessage="Incorrect email">
+                                             <f:validateRegex pattern="[\w\.-]*[a-zA-Z0-9_]@[\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]" />
+                                        </h:inputText>
+                                    </div>
+                                    <label class="col-lg-3 control-label"><h:message class="inputError" for="email"></h:message></label>
+                                </div>
+                                <div class="form-group col-lg-12 ">
+                                    <label class="col-lg-2 control-label">Credit number</label>
+                                    <div class="col-lg-4 inputWithLabel" >
+                                        <h:inputText  class="form-control" value="#{hotelBookBean.credit}"
+                                                      id="credit"
+                                                      required="true" requiredMessage="Credit cannot be empty" validatorMessage="10 number for credit">
+                                            <f:validateRegex pattern="\d{10}"></f:validateRegex>
+                                        </h:inputText>
+                                    </div>
+                                    <label class="col-lg-3 control-label"><h:message class="inputError" for="credit"></h:message></label>
+                                </div>
+                                <div class="form-group col-lg-2 ">
+                                <h:commandLink class="btn btn-success " style="width:320px;margin-left: 14px;margin-top: 10px;" value="Confirm and Book" 
+                                               action="#{hotelBookBean.makeBooking()}">
+                                    &nbsp;&nbsp;<i class="fa fa-key"></i>
+                                </h:commandLink>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </h:form>
+            </ui:define>
+        </ui:composition>
+    </body>
+    <script>
+      
+    </script>
+</html>
+
