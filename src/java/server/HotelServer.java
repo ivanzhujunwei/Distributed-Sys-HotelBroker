@@ -1,7 +1,5 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Hotel server parent class
  */
 package server;
 
@@ -63,17 +61,4 @@ public class HotelServer implements Runnable
         }
     }
 
-//    private ServerSocket getHotelServerSocket(String hotelName) throws IOException
-//    {
-//        switch (hotelName) {
-//            case Constants.HOTEL_CHEVRON:
-//                return new ServerSocket(Constants.PORT_CHEVRON);
-//            case Constants.HOTEL_HILTON:
-//                return new ServerSocket(Constants.PORT_HILTON);
-//            case Constants.HOTEL_REGENT:
-//                return new ServerSocket(Constants.PORT_REGENT);
-//            default:
-//                return null;
-//        }
-//    }
 }

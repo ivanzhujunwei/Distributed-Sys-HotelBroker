@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * The class is coping with the client users' request
+ * Then sending requests to broker server and get response from broker server.
  */
 package managedBeans;
 
@@ -14,6 +13,7 @@ import java.io.PrintStream;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
-import javax.faces.event.AjaxBehaviorEvent;
 import utility.Constants;
 import utility.Utility;
 
@@ -40,26 +39,50 @@ import utility.Utility;
 public class HotelBookClientBean implements Serializable
 {
 
+    // city name
     public String cityName;
+    
+    // hotel name
     public String hotelName;
+    
+    // hotel room rate
     public double rate;
+    
+    // check in date
     public String checkIn;
+    
+    // check out date
     public String checkOut;
+    
+    // available rooms found
     public List<Room> roomsFound;
     public boolean show;
 
+    // city list displayed in drop down list
     public List<String> allCities;
 
+    // guest name
     public String guestName;
+    
+    // guest phone
     public String phone;
+    
+    // guest email
     public String email;
+    
+    // guest credit
     public String credit;
 
+    // total amount
     public double totalAmount;
 
+    // room which is being booked
     public Room bookingRoom;
 
+    // error response from servers
     public String error;
+    
+    // different connection info for hotel servers
     public String connInfoHilton;
     public String connInfoChevron;
     public String connInfoRegent;
@@ -111,6 +134,9 @@ public class HotelBookClientBean implements Serializable
         initSessionValue();
     }
 
+    /***
+     * Initialize value
+     */
     private void initSessionValue()
     {
         error = "";
@@ -131,10 +157,11 @@ public class HotelBookClientBean implements Serializable
     public void connectHotelServer(String hotelName)
     {
         // send request to server: try to connect hotel server
-        out.println("TRY-CONNECT-HOTEL-SERVER:" + hotelName);
+        out.println(Constants.POC_CONNECT_HOTEL_SERER + hotelName);
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             String connectInfo = reader.readLine();
+            setError("");
             switch (hotelName) {
                 case Constants.HOTEL_CHEVRON:
                     connInfoChevron = connectInfo;
@@ -148,11 +175,17 @@ public class HotelBookClientBean implements Serializable
                 default:
                     break;
             }
+        } catch (SocketException se) {
+            setError("Error: connection lost, unable to connect to broker server.");
         } catch (IOException ex) {
-            Logger.getLogger(HotelBookClientBean.class.getName()).log(Level.SEVERE, null, ex);
+            setError("Error: IO exception when trying to connecting to broker server.");
         }
     }
 
+    /***
+     * Find another room after booking successfully
+     * @return 
+     */
     public String findAnotherRoom()
     {
         initSessionValue();
@@ -169,7 +202,7 @@ public class HotelBookClientBean implements Serializable
     {
         // send request to server: get all citites' name
         allCities.clear();
-        out.println("QUERY-BROKER-CITY:ALL");
+        out.println(Constants.POC_BROKER_ALL_CITIES);
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             String line = reader.readLine();
@@ -178,8 +211,10 @@ public class HotelBookClientBean implements Serializable
                 String[] cityNames = line.split(",");
                 allCities.addAll(Arrays.asList(cityNames));
             }
+        } catch (SocketException se) {
+            setError(Constants.ERR_BROKER_SERVER);
         } catch (IOException ex) {
-            Logger.getLogger(HotelBookClientBean.class.getName()).log(Level.SEVERE, null, ex);
+            setError(Constants.ERR_IOEXCEPTION);
         }
         return allCities;
     }
@@ -196,73 +231,68 @@ public class HotelBookClientBean implements Serializable
         try {
             // correct city name
             if (cityName != null && !cityName.trim().equals("")) {
-                out.println("QUERY-BROKER-HOTEL-FROM-CITY:" + cityName);
+                out.println(Constants.POC_BROKER_HOTEL_FROM_CITY + cityName);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(in));
                 String line = reader.readLine();
+                clearError();
                 if (!Utility.isEmpty(line)) {
                     // hotels' name are seperated by comma ','
                     String[] hotelNames = line.split(",");
                     lst.addAll(Arrays.asList(hotelNames));
                 }
             }
+        } catch (SocketException se) {
+            setError(Constants.ERR_BROKER_SERVER);
         } catch (IOException ex) {
-            Logger.getLogger(HotelBookClientBean.class.getName()).log(Level.SEVERE, null, ex);
+            setError(Constants.ERR_IOEXCEPTION);
         }
         return lst;
     }
 
+    /**
+     * *
+     * Clear error context
+     */
+    private void clearError()
+    {
+        setError("");
+    }
+
+    /***
+     * Get hotel rate
+     * @return 
+     */
     public double getRate()
     {
         String rateStr = "0";
         if (!Utility.isEmpty(hotelName) && !Utility.isEmpty(cityName)) {
-            out.println("QUERY-BROKER-HOTEL-RATE:" + hotelName + ":" + cityName);
+            out.println(Constants.POC_BROKER_HOTEL_RATE + hotelName + ":" + cityName);
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             try {
                 rateStr = reader.readLine();
+                System.out.println("........"+rateStr);
+                rate = Double.parseDouble(rateStr);
+            } catch (SocketException se) {
+                setError(Constants.ERR_BROKER_SERVER);
             } catch (IOException ex) {
-                Logger.getLogger(HotelBookClientBean.class.getName()).log(Level.SEVERE, null, ex);
+                setError(Constants.ERR_IOEXCEPTION);
             }
         }
-        this.rate = Double.parseDouble(rateStr);
         return rate;
     }
 
     public List<Room> getRoomsFound()
     {
-
-//        if (Utility.isEmpty(hotelName) || Utility.isEmpty(checkIn) || Utility.isEmpty(checkOut)) {
-//            return roomsFound;
-//        }
-//        roomsFound.clear();
-//        if (Utility.isDateFormat(checkIn) && Utility.isDateFormat(checkOut)) {
-//            System.out.println("dddddd");
-//            // hotelName could only be: HOTEL_BROKER / HOTEL_HILTON / HOTEL_CHEVRON / HOTEL_REGENT
-//            String request = "QUERY-HOTEL-AVAILABLE-ROOMS:" + hotelName + ":" + checkIn + ":" + checkOut;
-//            out.println(request);
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-//            String roomFromServer;
-//            try {
-//                roomFromServer = reader.readLine();
-//                if (!Utility.isEmpty(roomFromServer)) {
-//                    String[] roomArray = roomFromServer.split(":");
-//                    for (String roomSt : roomArray) {
-//                        Room r = new Room();
-//                        String[] singleRoom = roomSt.split("-");
-//                        r.setRoomId(Integer.parseInt(singleRoom[0]));
-//                        r.setDes(singleRoom[1]);
-//                        roomsFound.add(r);
-//                    }
-//                }
-//            } catch (IOException ex) {
-//                Logger.getLogger(HotelBookClientBean.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//        }
         return roomsFound;
     }
 
+    /***
+     * Make a booking 
+     * @return 
+     */
     public String makeBooking()
     {
-        String request = "QUERY-HOTEL-SUBMIT-BOOKING:"
+        String request = Constants.POC_HOTEL_SUBMIT_BOOKING
                 + hotelName + Constants.SEMI
                 + checkIn + Constants.SEMI
                 + checkOut + Constants.SEMI
@@ -273,65 +303,75 @@ public class HotelBookClientBean implements Serializable
                 + credit;
         out.println(request);
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-        String bookResponse;
         try {
-            bookResponse = reader.readLine();
+            String bookResponse = reader.readLine();
+            // if hotel servers send response with failure information
+            // booking operation will be prevented
+            if (Utility.isErrorFromServer(bookResponse)) {
+                setError(bookResponse);
+                return "bookRoom.xhtml";
+            } else {
+                clearError();
+            }
+        } catch (SocketException se) {
+            setError(Constants.ERR_BROKER_SERVER);
         } catch (IOException ex) {
-            Logger.getLogger(HotelBookClientBean.class.getName()).log(Level.SEVERE, null, ex);
+            setError(Constants.ERR_IOEXCEPTION);
         }
         return "ticket.xhtml";
     }
 
+    /***
+     * Find available rooms
+     */
     public void getAvailableRooms()
     {
         if (Utility.isEmpty(hotelName) || Utility.isEmpty(checkIn) || Utility.isEmpty(checkOut)) {
             return;
         }
-        roomsFound.clear();
         // validate checkin and checkout order
-        DateFormat format = new SimpleDateFormat("yyyy-mm-dd");
-        Date checkInDate;
-        try {
-            checkInDate = format.parse(checkIn);
-            Date checkoutDate = format.parse(checkOut);
-            // validate checkout > checkin date
-            if (checkInDate.compareTo(checkoutDate) > 0) {
-                setError("Check in date should be before check out date.");
-                return;
-            } else {
-                setError("");
-            }
-        } catch (ParseException ex) {
-            Logger.getLogger(HotelBookClientBean.class.getName()).log(Level.SEVERE, null, ex);
+        if (!Utility.strDateCompare(checkIn, checkOut)) {
+            setError("Check in date should be before check out date.");
+            return;
+        } else {
+            clearError();
         }
-
         if (Utility.isDateFormat(checkIn) && Utility.isDateFormat(checkOut)) {
             // hotelName could only be: HOTEL_BROKER / HOTEL_HILTON / HOTEL_CHEVRON / HOTEL_REGENT
-            String request = "QUERY-HOTEL-AVAILABLE-ROOMS:" + hotelName + ":" + checkIn + ":" + checkOut;
+            String request = Constants.POC_HOTEL_AVAILABLE_ROOMS + hotelName + ":" + checkIn + ":" + checkOut;
             out.println(request);
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             String roomFromServer;
             try {
+                roomsFound.clear();
                 roomFromServer = reader.readLine();
+                clearError();
+                // check the response from server is empty or contains failure information
                 if (!Utility.isEmpty(roomFromServer) && !Utility.isErrorFromServer(roomFromServer)) {
                     String[] roomArray = roomFromServer.split(":");
                     for (String roomSt : roomArray) {
-                        Room r = new Room();
                         String[] singleRoom = roomSt.split("-");
-                        r.setRoomId(Integer.parseInt(singleRoom[0]));
-                        r.setDes(singleRoom[1]);
+                        Room r = new Room(Integer.parseInt(singleRoom[0]), singleRoom[1]);
                         roomsFound.add(r);
                     }
-                }else if(Utility.isErrorFromServer(roomFromServer)){
+                } else if (Utility.isErrorFromServer(roomFromServer)) {
                     setError(roomFromServer);
                 }
-                
+            } catch (SocketException se) {
+                setError(Constants.ERR_BROKER_SERVER);
             } catch (IOException ex) {
-                Logger.getLogger(HotelBookClientBean.class.getName()).log(Level.SEVERE, null, ex);
+                setError(Constants.ERR_IOEXCEPTION);
             }
         }
     }
 
+    /**
+     * *
+     * Go to booking page
+     *
+     * @param room the room is going to be booked
+     * @return booking page
+     */
     public String tryBooking(Room room)
     {
         this.bookingRoom = room;
@@ -341,7 +381,6 @@ public class HotelBookClientBean implements Serializable
             Date checkInDate = format.parse(checkIn);
             Date checkOutDate = format.parse(checkOut);
             diffDays = (int) ((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
-//            totalAmount = Double.parseDouble(diffDays * rate);
         } catch (ParseException ex) {
             Logger.getLogger(HotelBookClientBean.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -351,6 +390,7 @@ public class HotelBookClientBean implements Serializable
 
     public String getCityName()
     {
+
         return cityName;
     }
 
@@ -419,9 +459,17 @@ public class HotelBookClientBean implements Serializable
         return error;
     }
 
+    /**
+     * *
+     * Set the error info if the error has been cleared
+     *
+     * @param error
+     */
     public void setError(String error)
     {
-        this.error = error;
+//        if (Utility.isEmpty(this.error)) {
+            this.error = error;
+//        }
     }
 
     public String getPhone()

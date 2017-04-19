@@ -1,7 +1,5 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Establish database connections
  */
 package utility;
 
@@ -33,7 +31,7 @@ public class DBConnection
      */
     public Connection getConnections(String hotelName) throws SQLException
     {
-        System.out.println("Trying to connect " + hotelName + " database!");
+//        System.out.println("Trying to connect " + hotelName + " database!");
         switch (hotelName) {
             case Constants.HOTEL_BROKER:
                 conn = DriverManager.getConnection(Constants.DB_BROKER, USERNAME, PASSWORD);
@@ -51,7 +49,7 @@ public class DBConnection
                 conn = DriverManager.getConnection(Constants.DB_BROKER, USERNAME, PASSWORD);
                 break;
         }
-        System.out.println("Connected!");
+//        System.out.println("Connected!");
         return conn;
     }
 

@@ -17,7 +17,14 @@ public class Room implements Serializable{
     private int roomId;
     
     private String des;
+    
+    public Room(int roomId, String desc){
+        this.roomId = roomId;
+        this.des = desc;
+    }
 
+    public Room(){}
+    
     public int getRoomId()
     {
         return roomId;

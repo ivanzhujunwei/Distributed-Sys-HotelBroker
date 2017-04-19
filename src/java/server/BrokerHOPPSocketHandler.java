@@ -1,5 +1,5 @@
 /*
- * 
+ * Handle the incoming request from client side
  */
 package server;
 
@@ -35,12 +35,16 @@ import utility.Utility;
 public class BrokerHOPPSocketHandler implements Runnable
 {
 
+    // connection
     Connection conn;
+    
+    // incoming socket from client side
     Socket incoming;
 
     BufferedReader readerFromClient;
     PrintStream writerToClient;
 
+    // inputstream and printstream for each hotel server
     InputStream inChevron;
     InputStream inHilton;
     InputStream inRegent;
@@ -48,16 +52,18 @@ public class BrokerHOPPSocketHandler implements Runnable
     PrintStream writerChevron;
     PrintStream writerRegent;
 
+    // socket for each hotel server
     Socket socketHilton;
     Socket socketChevron;
     Socket socketRegent;
 
     /**
      * *
-     * Map <City name, Hotel list>
+     * Store the city list and corresponding hotels  <City name, Hotel list>
      */
     private Map<String, List<Hotel>> hotels;
 
+    // db connection
     DBConnection dBConn;
 
     BrokerHOPPSocketHandler(Socket incoming)
@@ -65,32 +71,8 @@ public class BrokerHOPPSocketHandler implements Runnable
         this.incoming = incoming;
         dBConn = new DBConnection();
         this.hotels = new HashMap<>();
-//        loadDatabase();
-//        initIOStream(Constants.HOTEL_CHEVRON);
-//        initIOStream(Constants.HOTEL_HILTON);
-//        iniHotelServer(Constants.HOTEL_REGENT);
     }
 
-//    private void initIOStream(String hotelName)
-//    {
-//        try {
-//            switch (hotelName) {
-//                case Constants.HOTEL_CHEVRON:
-//                    inChevron = socketChevron.getInputStream();
-//                    writerChevron = new PrintStream(socketChevron.getOutputStream());
-//                    break;
-//                case Constants.HOTEL_HILTON:
-//
-//                    break;
-//                case Constants.HOTEL_REGENT:
-//
-//                    break;
-//            }
-//        } catch (IOException ex) {
-//            Logger.getLogger(BrokerHOPPSocketHandler.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        System.out.println("Server " + hotelName + " running");
-//    }
     /**
      * *
      * Get different hotel socket
@@ -128,26 +110,6 @@ public class BrokerHOPPSocketHandler implements Runnable
         System.out.println("✔ Connected to " + hotelName + " hotel server ");
     }
 
-//    private void closeHotelSocket(String hotelName)
-//    {
-//        try {
-//            switch (hotelName) {
-//                case Constants.HOTEL_CHEVRON:
-//                    socketChevron.close();
-//                    break;
-//                case Constants.HOTEL_HILTON:
-//                    socketHilton.close();
-//                    break;
-//                case Constants.HOTEL_REGENT:
-//                    socketRegent.close();
-//                default:
-//                    break;
-//            }
-//            System.out.println("✘ Disconnect " + hotelName + " hotel server ");
-//        } catch (IOException ex) {
-//            Logger.getLogger(BrokerHOPPSocketHandler.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
     @Override
     public void run()
     {
@@ -158,12 +120,13 @@ public class BrokerHOPPSocketHandler implements Runnable
             while (done) {
                 String clientRequest = readerFromClient.readLine();
                 System.out.println("Client quest: " + clientRequest);
-                // If the request is null or 'BYE', then the loop ends
                 if (Utility.isValidRequest(clientRequest)) {
+                    writerToClient.println(getServerResponse(clientRequest));
+                } 
+                else {
+                    writerToClient.println("Error invalid request from client");
                     break;
                 }
-                String response2Client = getServerResponse(clientRequest);
-                writerToClient.println(response2Client);
             }
             incoming.close();
         } catch (IOException e) {
@@ -180,13 +143,13 @@ public class BrokerHOPPSocketHandler implements Runnable
      */
     private String getServerResponse(String clientRequest)
     {
-        if (clientRequest.startsWith("QUERY-HOTEL")) {
+        if (clientRequest.startsWith(Constants.POC_HOTEL)) {
             // query from hotel servers
             return getHotelResponse(clientRequest);
-        } else if (clientRequest.startsWith("QUERY-BROKER")) {
+        } else if (clientRequest.startsWith(Constants.POC_BROKER)) {
             // query from broker itself
             return getBrokerResponse(clientRequest);
-        } else if (clientRequest.startsWith("TRY-CONNECT-HOTEL-SERVER")) {
+        } else if (clientRequest.startsWith(Constants.POC_CONNECT_HOTEL_SERER)) {
             // try to establish connection to hotel server
             return connOrDisConnHotelServer(clientRequest);
         }
@@ -220,10 +183,10 @@ public class BrokerHOPPSocketHandler implements Runnable
                     return "Connected successfully!";
                 }
             } catch (IOException ex) {
-                return "IO exception";
+                return "Error: Internet issue.";
             }
         } else {
-            return hotelName + " server is currently offline, cannot be connected!";
+            return "Error: " + hotelName + " server is offline, cannot be connected!";
         }
     }
 
@@ -249,11 +212,14 @@ public class BrokerHOPPSocketHandler implements Runnable
         List<Hotel> hotelList = this.hotels.get(cityName);
         if (null != hotelList && hotelList.isEmpty()) {
             // if the hotel list size is still > 1, means there are other hotels in the city
-//            this.hotels.put(h.getCityName(), hs);
             this.hotels.remove(cityName);
         }
     }
 
+    /***
+     * Load broker database based on which hotel server is connected
+     * @param serverName hotel server name
+     */
     private void loadHotelData(String serverName)
     {
         try {
@@ -299,28 +265,34 @@ public class BrokerHOPPSocketHandler implements Runnable
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
             writer.println(clientRequest);
             try {
-                return reader.readLine();
+                String hotelResponse =  reader.readLine();
+                return hotelResponse;
             } catch (SocketException ex) {
-                return "Error: " + hotelName + " server is disconnected, socket closed.";
+                return "Error: " + hotelName + " server is offline, cannot be connected!";
             } catch (IOException ex) {
-                return "Error: IOExceeption" + ex.toString();
+                return "Error: Internet issue.";
             }
         }
         return null;
     }
 
+    /***
+     * Get broker response
+     * @param clientRequest
+     * @return broker response
+     */
     private String getBrokerResponse(String clientRequest)
     {
-        if (clientRequest.startsWith("QUERY-BROKER-CITY:ALL")) {
+        if (clientRequest.startsWith(Constants.POC_BROKER_ALL_CITIES)) {
             return getAllCities();
         }
-        if (clientRequest.startsWith("QUERY-BROKER-HOTEL-FROM-CITY")) {
+        if (clientRequest.startsWith(Constants.POC_BROKER_HOTEL_FROM_CITY)) {
             String[] queries = clientRequest.split(":");
             String cityName = queries[1];
             return getHotelsInACity(cityName);
         }
         // QUERY-BROKER-HOTEL-RATE:<hotel name>:<city name>
-        if (clientRequest.startsWith("QUERY-BROKER-HOTEL-RATE")) {
+        if (clientRequest.startsWith(Constants.POC_BROKER_HOTEL_RATE)) {
             String[] queries = clientRequest.split(":");
             String hotelName = queries[1];
             String cityName = queries[2];
@@ -442,7 +414,7 @@ public class BrokerHOPPSocketHandler implements Runnable
 
     /**
      * *
-     *
+     * Get hotel rate
      * @param hotelName
      * @param cityName
      * @return

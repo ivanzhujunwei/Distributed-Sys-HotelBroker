@@ -33,13 +33,13 @@
                                 <div class="form-group col-lg-12 ">
                                     <label class="col-lg-2 control-label">Room rate</label>
                                     <div class="col-lg-4" >
-                                        <label class="control-label">#{hotelBookBean.rate}</label>
+                                        $<label class="control-label">#{hotelBookBean.rate}</label>
                                     </div>
                                 </div>
                                 <div class="form-group col-lg-12 ">
                                     <label class="col-lg-2 control-label">Total amount</label>
                                     <div class="col-lg-4" >
-                                        <label class="control-label">#{hotelBookBean.totalAmount}</label>
+                                        $<label class="control-label">#{hotelBookBean.totalAmount}</label>
                                     </div>
                                 </div>
                                 <div class="form-group col-lg-12 ">
@@ -61,7 +61,7 @@
                     </div>
                     <div class="col-lg-10" >
                         <div class="panel panel-default " >
-                            <div class="panel-heading">Fill in customer's information</div>
+                            <div class="panel-heading">Fill in customer's information <label class="inputError">#{hotelBookBean.error}</label></div>
                             <div class="panel-body">
                                 <div class="form-group col-lg-12 ">
                                     <label class="col-lg-2 control-label">Guest name</label>
